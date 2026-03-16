@@ -2,37 +2,71 @@
 import java.io.*;
 import java.util.*;
 
-public class tryHeapsort {
+public class BuildHeapBottomUp {
     
     public static void main(String[] args) {
-        System.out.println("=".repeat(70));
-        System.out.println("CSC 211 - Fundamental Algorithms and Data Structures");
-        System.out.println("Term 1 Practical 6: Heap Sort Implementation");
-        System.out.println("=".repeat(70));
+        System.out.println("=== TASK 1: BUILD HEAP FROM BOTTOM UP (IN SITU) ===");
         
         try {
-            
+            // Part (c): Test with a short array first (not more than 20 words)
             testWithShortArray();
             
-            // Read and clean words from file
-            System.out.println("\n--- Reading words from " + filename + " ---");
-            String[] words = readWordsFromFile(joyce1922_ulysses.text);
+            // Then work with Ulysses words - using the supplied text version
+            String filename = "ulysses.txt"; // Direct filename as per instructions
+            System.out.println("\n--- Working with Ulysses words from " + filename + " ---");
             
-            if (words.length == 0) {
-                System.out.println("No words found in the file.");
-                return;
+            String[] words = readWordsFromFile(filename);
+            
+            if (words.length > 0) {
+                System.out.println("Total words: " + words.length);
+                System.out.println("First 20 words from Ulysses:");
+                displayArraySample(words, 20);
+                
+                // Part (a): Build heap from the bottom up
+                System.out.println("\n--- Part (a): Building heap from the bottom up ---");
+                long startTime = System.nanoTime();
+                
+                // Build heap directly in the original array (in situ)
+                buildHeapBottomUp(words);
+                
+                long endTime = System.nanoTime();
+                double buildTimeMs = (endTime - startTime) / 1_000_000.0;
+                
+                System.out.println("Time to build heap bottom-up: " + buildTimeMs + " ms");
+                
+                // Display heap array sample
+                System.out.println("\nHeap array after bottom-up construction (first 20 elements):");
+                displayArraySample(words, 20);
+                
+                // Verify heap property
+                boolean isValid = verifyHeapProperty(words);
+                System.out.println("Heap property valid: " + isValid);
+                
+                // From this heap make a list of words sorted into alphabetical order
+                System.out.println("\n--- Sorting the heap to get alphabetical order ---");
+                startTime = System.nanoTime();
+                heapSort(words);
+                endTime = System.nanoTime();
+                double sortTimeMs = (endTime - startTime) / 1_000_000.0;
+                
+                System.out.println("Time to sort: " + sortTimeMs + " ms");
+                System.out.println("\nSorted array (first 20 words in alphabetical order):");
+                displayArraySample(words, 20);
+                
+                // Verify sorting
+                boolean isSorted = verifySorted(words);
+                System.out.println("Array is correctly sorted: " + isSorted);
+                System.out.println("\nTotal time (build + sort): " + (buildTimeMs + sortTimeMs) + " ms");
+            } else {
+                System.out.println("No words found in " + filename);
             }
             
-            System.out.println("Total words read: " + words.length);
-            System.out.println("First 20 words from file:");
-            displayArraySample(words, 20);
-            
-            // Part (d) and (e): Compare timings for both methods
-            compareHeapConstructionMethods(words);
-            
+        } catch (FileNotFoundException e) {
+            System.out.println("ERROR: " + filename + " not found!");
+            System.out.println("Please make sure the Ulysses text file is in the current directory.");
+            System.out.println("Current working directory: " + System.getProperty("user.dir"));
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());
-            System.out.println("Current working directory: " + System.getProperty("user.dir"));
         }
     }
     
@@ -41,196 +75,50 @@ public class tryHeapsort {
      */
     private static void testWithShortArray() {
         System.out.println("\n" + "-".repeat(50));
-        System.out.println("PART (c): TESTING WITH SHORT ARRAY");
+        System.out.println("PART (c): TESTING WITH SHORT ARRAY (20 words)");
         System.out.println("-".repeat(50));
         
-        // Create a short array of 15 words
+        // Create a short array of exactly 20 words
         String[] testWords = {
-            "dog", "cat", "bird", "fish", "ant", 
-            "zebra", "lion", "elephant", "tiger", "bear",
-            "monkey", "giraffe", "horse", "sheep", "goat"
+            "dog", "cat", "bird", "fish", "ant", "zebra", "lion", "elephant", "tiger", "bear",
+            "monkey", "giraffe", "horse", "sheep", "goat", "cow", "duck", "frog", "bee", "owl"
         };
         
         System.out.println("Original array (" + testWords.length + " words):");
         System.out.println(Arrays.toString(testWords));
-        System.out.println();
         
-        // Test bottom-up heap construction and sort
-        System.out.println("BOTTOM-UP APPROACH:");
-        String[] bottomUpCopy = testWords.clone();
+        // Make a copy for testing
+        String[] testCopy = testWords.clone();
         
         // Build heap bottom-up
-        buildHeapBottomUp(bottomUpCopy);
-        System.out.println("After bottom-up heap construction:");
-        System.out.println(Arrays.toString(bottomUpCopy));
+        buildHeapBottomUp(testCopy);
+        System.out.println("\nAfter bottom-up heap construction:");
+        System.out.println(Arrays.toString(testCopy));
         
         // Verify heap property
-        System.out.println("Heap property valid: " + verifyHeapProperty(bottomUpCopy));
+        System.out.println("Heap property valid: " + verifyHeapProperty(testCopy));
         
-        // Sort using heap sort
-        heapSort(bottomUpCopy);
-        System.out.println("After heap sort (alphabetical order):");
-        System.out.println(Arrays.toString(bottomUpCopy));
-        System.out.println("Sorted correctly: " + verifySorted(bottomUpCopy));
+        // Sort the heap
+        heapSort(testCopy);
+        System.out.println("\nAfter heap sort (alphabetical order):");
+        System.out.println(Arrays.toString(testCopy));
+        
+        // Verify sorting
+        System.out.println("Array sorted correctly: " + verifySorted(testCopy));
         System.out.println();
-        
-        // Test top-down heap construction and sort
-        System.out.println("TOP-DOWN APPROACH:");
-        String[] topDownCopy = testWords.clone();
-        
-        // Build heap top-down
-        buildHeapTopDown(topDownCopy);
-        System.out.println("After top-down heap construction:");
-        System.out.println(Arrays.toString(topDownCopy));
-        
-        // Verify heap property
-        System.out.println("Heap property valid: " + verifyHeapProperty(topDownCopy));
-        
-        // Sort using heap sort
-        heapSort(topDownCopy);
-        System.out.println("After heap sort (alphabetical order):");
-        System.out.println(Arrays.toString(topDownCopy));
-        System.out.println("Sorted correctly: " + verifySorted(topDownCopy));
-        
-        // Verify both methods produce the same sorted result
-        boolean sameResult = Arrays.equals(bottomUpCopy, topDownCopy);
-        System.out.println("\nBoth methods produce the same sorted result: " + sameResult);
-    }
-    
-    /**
-     * Part (d) and (e): Compare timings for bottom-up vs top-down heap construction
-     */
-    private static void compareHeapConstructionMethods(String[] words) {
-        System.out.println("\n" + "-".repeat(50));
-        System.out.println("PART (d) & (e): TIMING COMPARISON");
-        System.out.println("-".repeat(50));
-        System.out.println("Running multiple tests for accurate timing...\n");
-        
-        int numTests = 5;
-        long bottomUpTotalTime = 0;
-        long topDownTotalTime = 0;
-        long bottomUpSortTotalTime = 0;
-        long topDownSortTotalTime = 0;
-        
-        for (int test = 1; test <= numTests; test++) {
-            System.out.println("Test " + test + " of " + numTests + ":");
-            
-            // Create fresh copies for each test
-            String[] wordsForBottomUp = words.clone();
-            String[] wordsForTopDown = words.clone();
-            
-            // --- BOTTOM-UP APPROACH ---
-            // Time just the heap construction
-            long startTime = System.nanoTime();
-            buildHeapBottomUp(wordsForBottomUp);
-            long endTime = System.nanoTime();
-            long bottomUpTime = endTime - startTime;
-            bottomUpTotalTime += bottomUpTime;
-            
-            // Time the sorting phase (same for both methods)
-            startTime = System.nanoTime();
-            heapSort(wordsForBottomUp);
-            endTime = System.nanoTime();
-            long bottomUpSortTime = endTime - startTime;
-            bottomUpSortTotalTime += bottomUpSortTime;
-            
-            System.out.printf("  Bottom-up: Construction = %.3f ms, Sort = %.3f ms%n", 
-                bottomUpTime / 1_000_000.0, bottomUpSortTime / 1_000_000.0);
-            
-            // --- TOP-DOWN APPROACH ---
-            // Time just the heap construction
-            startTime = System.nanoTime();
-            buildHeapTopDown(wordsForTopDown);
-            endTime = System.nanoTime();
-            long topDownTime = endTime - startTime;
-            topDownTotalTime += topDownTime;
-            
-            // Time the sorting phase (same as bottom-up)
-            startTime = System.nanoTime();
-            heapSort(wordsForTopDown);
-            endTime = System.nanoTime();
-            long topDownSortTime = endTime - startTime;
-            topDownSortTotalTime += topDownSortTime;
-            
-            System.out.printf("  Top-down:    Construction = %.3f ms, Sort = %.3f ms%n%n", 
-                topDownTime / 1_000_000.0, topDownSortTime / 1_000_000.0);
-            
-            // Verify both methods produce correct sorting
-            if (test == 1) {
-                boolean bottomUpCorrect = verifySorted(wordsForBottomUp);
-                boolean topDownCorrect = verifySorted(wordsForTopDown);
-                System.out.println("  First test verification:");
-                System.out.println("    Bottom-up sorted correctly: " + bottomUpCorrect);
-                System.out.println("    Top-down sorted correctly: " + topDownCorrect);
-                System.out.println();
-            }
-        }
-        
-        // Calculate averages
-        double avgBottomUpConst = bottomUpTotalTime / (numTests * 1_000_000.0);
-        double avgTopDownConst = topDownTotalTime / (numTests * 1_000_000.0);
-        double avgBottomUpSort = bottomUpSortTotalTime / (numTests * 1_000_000.0);
-        double avgTopDownSort = topDownSortTotalTime / (numTests * 1_000_000.0);
-        double avgBottomUpTotal = avgBottomUpConst + avgBottomUpSort;
-        double avgTopDownTotal = avgTopDownConst + avgTopDownSort;
-        
-        // Display final timing comparison
-        System.out.println("\n" + "=".repeat(60));
-        System.out.println("FINAL TIMING COMPARISON (Averages over " + numTests + " tests)");
-        System.out.println("=".repeat(60));
-        System.out.printf("%-25s %15s %15s %15s%n", "Method", "Construction", "Sort Phase", "Total Time");
-        System.out.println("-".repeat(60));
-        System.out.printf("%-25s %15.3f ms %15.3f ms %15.3f ms%n", 
-            "Bottom-up", avgBottomUpConst, avgBottomUpSort, avgBottomUpTotal);
-        System.out.printf("%-25s %15.3f ms %15.3f ms %15.3f ms%n", 
-            "Top-down", avgTopDownConst, avgTopDownSort, avgTopDownTotal);
-        System.out.println("-".repeat(60));
-        
-        double ratio = avgTopDownConst / avgBottomUpConst;
-        System.out.printf("\nTop-down construction is %.2f times slower than bottom-up construction%n", ratio);
-        
-        if (avgBottomUpSort > 0 && avgTopDownSort > 0) {
-            double sortRatio = Math.max(avgBottomUpSort, avgTopDownSort) / 
-                              Math.min(avgBottomUpSort, avgTopDownSort);
-            System.out.printf("Sort phase times are very similar (ratio: %.2f:1)%n", sortRatio);
-        }
-        
-        System.out.println("\nNote: The sort phase is identical for both methods,");
-        System.out.println("as once the heap is built, the sorting algorithm is the same.");
     }
     
     /**
      * Part (a): Build heap from the bottom up (Floyd's algorithm)
-     * Time complexity: O(n)
+     * Using the code for buildUp as a basis (as mentioned in instructions)
      */
     public static void buildHeapBottomUp(String[] array) {
         int n = array.length;
         
         // Start from the last non-leaf node and heapify down
+        // Last non-leaf node is at index (n/2 - 1)
         for (int i = n / 2 - 1; i >= 0; i--) {
             heapifyDown(array, n, i);
-        }
-    }
-    
-    /**
-     * Part (b): Build heap from the top down by repeated insertions
-     * Time complexity: O(n log n)
-     */
-    public static void buildHeapTopDown(String[] array) {
-        int n = array.length;
-        
-        // Treat the array as if we're inserting elements one by one
-        for (int i = 1; i < n; i++) {
-            // Element at index i is the new element being inserted
-            int current = i;
-            int parent = (current - 1) / 2;
-            
-            // Heapify up: bubble the new element up to maintain heap property
-            while (current > 0 && array[current].compareTo(array[parent]) > 0) {
-                swap(array, current, parent);
-                current = parent;
-                parent = (current - 1) / 2;
-            }
         }
     }
     
@@ -261,14 +149,14 @@ public class tryHeapsort {
     
     /**
      * Heap sort using the in-place heap
-     * This is the shareable sorting algorithm mentioned in part (d)
+     * From this heap make a list of words sorted into alphabetical order
      */
     public static void heapSort(String[] array) {
         int n = array.length;
         
         // Note: The array should already be a heap when this method is called
-        // We extract elements one by one
         
+        // Extract elements from heap one by one
         for (int i = n - 1; i > 0; i--) {
             // Move current root to end
             swap(array, 0, i);
@@ -341,7 +229,8 @@ public class tryHeapsort {
     }
     
     /**
-     * Read and clean words from a text file
+     * Read and clean words from the Ulysses text file
+     * Using the cleaned words from last week's practical
      */
     private static String[] readWordsFromFile(String filename) throws IOException {
         ArrayList<String> wordsList = new ArrayList<>();
@@ -349,11 +238,12 @@ public class tryHeapsort {
         String line;
         int lineCount = 0;
         
-        System.out.println("Reading and cleaning words from file...");
+        System.out.println("Reading and cleaning words from Ulysses...");
         
         while ((line = reader.readLine()) != null) {
             lineCount++;
             // Clean the words (remove punctuation, convert to lowercase)
+            // This uses the same cleaning process from last week
             String[] words = line.toLowerCase().split("[^a-zA-Z]+");
             for (String word : words) {
                 if (!word.isEmpty()) {
@@ -361,7 +251,7 @@ public class tryHeapsort {
                 }
             }
             
-            // Progress indicator for large files
+            // Progress indicator for large file
             if (lineCount % 1000 == 0) {
                 System.out.print(".");
             }
