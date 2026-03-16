@@ -12,10 +12,10 @@ public class BuildHeapBottomUp {
             testWithShortArray();
             
             // Then work with Ulysses words - using the supplied text version
-            String filename = "ulysses.txt"; // Direct filename as per instructions
+            String filename = "ulysses.txt"; 
             System.out.println("\n--- Working with Ulysses words from " + filename + " ---");
             
-            String[] words = readWordsFromFile(filename);
+            String[] words = readWordsFromFile(joyce1922_ulysses.text);
             
             if (words.length > 0) {
                 System.out.println("Total words: " + words.length);
@@ -62,7 +62,7 @@ public class BuildHeapBottomUp {
             }
             
         } catch (FileNotFoundException e) {
-            System.out.println("ERROR: " + filename + " not found!");
+            System.out.println("ERROR: ulysses.txt not found!");
             System.out.println("Please make sure the Ulysses text file is in the current directory.");
             System.out.println("Current working directory: " + System.getProperty("user.dir"));
         } catch (IOException e) {
